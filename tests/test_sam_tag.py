@@ -31,7 +31,7 @@ def test_sam_tag_raises_if_not_str() -> None:
 
     with pytest.raises(
         TypeError,
-        match="SAM tags should inherit from `StrEnum` or mix in `str`.",
+        match="BadTag: SAM tag classes should inherit from `StrEnum` or mix in `str`.",
     ):
 
         @sam_tag
@@ -46,7 +46,7 @@ def test_sam_tag_raises_if_not_enum() -> None:
 
     with pytest.raises(
         TypeError,
-        match="The `sam_tag` decorator may only be applied to `Enum` classes.",
+        match="BadTag: The `sam_tag` decorator may only be applied to `Enum` subclasses.",
     ):
         # NB: mypy (accurately) flags that `sam_tag` requires an enumeration
         # type, but we want to test that this is also enforced at runtime for
@@ -71,13 +71,14 @@ def test_sam_tag_raises_if_tags_are_not_two_characters(tag: str) -> None:
     two-character strings.
     """
 
-    with pytest.raises(
-        ValueError, match=f"SAM tags must be two-character alphanumeric strings: {tag}"
-    ):
+    with pytest.raises(ValueError, match="BadTag: The following SAM tags are invalid") as excinfo:
 
         @sam_tag
         class BadTag(StrEnum):
             XB = tag
+
+    msg = str(excinfo.value)
+    assert msg.endswith(f"{tag}: SAM tags must be two-character alphanumeric strings.")
 
 
 def test_sam_tag_raises_if_tags_are_not_unique() -> None:
@@ -103,37 +104,36 @@ def test_sam_tag_raises_if_tag_conflicts_with_standard(
     with a predefined standard tag.
     """
 
-    with pytest.raises(
-        ValueError,
-        match="Locally-defined SAM tags may not conflict with a predefined ",
-    ):
+    with pytest.raises(ValueError, match="BadTag: The following SAM tags are invalid:") as excinfo:
 
         @sam_tag
         class BadTag(StrEnum):
             XB = standard_tag
 
+    msg = str(excinfo.value)
+    assert msg.endswith(
+        f"{standard_tag}: Locally-defined SAM tags may not conflict with a predefined standard "
+        "tag."
+    )
 
-def test_sam_tag_raises_if_tag_is_not_valid_local(
-    standard_tag: str,
-) -> None:
+
+def test_sam_tag_raises_if_tag_is_not_valid_local() -> None:
     """
     Test that we raise a ValueError if any of the enumeration's values don't
     adhere to SAM conventions for locally-defined tags.
     """
 
-    with pytest.raises(
-        ValueError,
-        match="Locally-defined SAM tags may not conflict with a predefined ",
-    ):
+    with pytest.raises(ValueError, match="BadTag: The following SAM tags are invalid:") as excinfo:
 
         @sam_tag
         class BadTag(StrEnum):
             XB = "AA"
 
+    msg = str(excinfo.value)
+    assert msg.endswith("AA: Locally-defined SAM tags must be lowercase or start with X, Y, or Z.")
 
-def test_sam_tag_allows_invalid_local_when_not_strict(
-    standard_tag: str,
-) -> None:
+
+def test_sam_tag_allows_invalid_local_when_not_strict() -> None:
     """
     Test that we permit tags which don't adhere to SAM conventions for
     locally-defined tags when `strict=False`.

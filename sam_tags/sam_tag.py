@@ -39,24 +39,29 @@ def sam_tag(
        start with "X", "Y", or "Z", or are lowercase.
     """
 
-    # TODO: accumulate errors
-
     def validate_sam_tag_enum(enumeration: EnumerationT) -> type[Enum]:
         if not issubclass(enumeration, Enum):
-            raise TypeError("The `sam_tag` decorator may only be applied to `Enum` subclasses.")
+            raise TypeError(
+                f"{enumeration.__name__}: The `sam_tag` decorator may only be applied to `Enum` "
+                "subclasses."
+            )
 
         if not issubclass(enumeration, str):
-            raise TypeError("SAM tags should inherit from `StrEnum` or mix in `str`.")
+            raise TypeError(
+                f"{enumeration.__name__}: SAM tag classes should inherit from `StrEnum` or mix in "
+                "`str`."
+            )
 
-        errs: list[Exception] = []
+        errs: list[str] = []
         for tag in enumeration:
-            try:
-                _validate_sam_tag(tag, strict=strict)
-            except ValueError as err:
-                errs.append(err)
+            err_msg = _validate_sam_tag(tag, strict=strict)
+            if err_msg is not None:
+                errs.append(err_msg)
 
         if len(errs) > 0:
-            raise ExceptionGroup("Invalid SAM tags", errs)
+            raise ValueError(
+                f"{enumeration.__name__}: The following SAM tags are invalid:\n" + "\n".join(errs)
+            )
 
         return unique(enumeration)
 
@@ -87,26 +92,28 @@ def sam_tag(
         raise AssertionError("unreachable")
 
 
-def _validate_sam_tag(tag: Enum, strict: bool = False) -> None:
+def _validate_sam_tag(tag: Enum, strict: bool = False) -> str | None:
     """
     Validate an individual SAM tag.
-    """
 
-    if not TAG_REGEX.match(tag.value):
-        raise ValueError(f"SAM tags must be two-character alphanumeric strings: {tag}")
+    Returns:
+        An error message if the SAM tag was invalid.
+        None otherwise.
+    """
+    if TAG_REGEX.match(tag.value) is None:
+        return f"  {tag}: SAM tags must be two-character alphanumeric strings."
 
     if tag.value in [standard_tag.value for standard_tag in StandardTag]:
-        raise ValueError(
-            f"Locally-defined SAM tags may not conflict with a predefined standard tag: {tag}"
-        )
+        return f"  {tag}: Locally-defined SAM tags may not conflict with a predefined standard tag."
 
     if strict and not _is_valid_local_tag(tag.value):
-        raise ValueError("Locally-defined SAM tags must be lowercase or start with " "X, Y, or Z.")
+        return f"  {tag}: Locally-defined SAM tags must be lowercase or start with X, Y, or Z."
+
+    return None
 
 
 def _is_valid_local_tag(tag: str) -> bool:
     """
     True if the tag is a valid locally-defined tag.
     """
-
     return tag.startswith("X") or tag.startswith("Y") or tag.startswith("Z") or tag.islower()
