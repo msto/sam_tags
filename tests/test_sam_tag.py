@@ -15,6 +15,14 @@ def test_sam_tag() -> None:
         XG = "XG"
 
 
+def test_sam_tag_with_callable_decorator() -> None:
+    """Test that we can use the decorator with callable syntax."""
+
+    @sam_tag()
+    class CustomTag(StrEnum):
+        XG = "XG"
+
+
 def test_sam_tag_raises_if_not_str() -> None:
     """
     Test that we raise a TypeError if the decorated class is not a `StrEnum` or

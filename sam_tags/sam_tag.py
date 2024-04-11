@@ -1,6 +1,7 @@
 import re
 from enum import Enum
 from enum import unique
+from typing import Callable
 from typing import TypeVar
 
 from sam_tags.standard_tag import StandardTag
@@ -15,7 +16,10 @@ Copied from `mypy`: https://github.com/python/mypy/blob/e2fc1f28935806ca04b18fab
 TAG_REGEX = re.compile(r"^[A-Za-z][A-Za-z0-9]$")
 
 
-def sam_tag(enumeration: EnumerationT) -> type[Enum]:
+def sam_tag(
+    *args: EnumerationT,
+    strict: bool = False,
+) -> type[Enum] | Callable[..., type[Enum]]:
     """
     Declare a locally-defined group of SAM tags.
 
@@ -33,19 +37,47 @@ def sam_tag(enumeration: EnumerationT) -> type[Enum]:
 
     # TODO: accumulate errors
 
-    if not issubclass(enumeration, Enum):
-        raise TypeError("The `sam_tag` decorator may only be applied to `Enum` classes.")
+    def validate_sam_tag_enum(enumeration: EnumerationT) -> type[Enum]:
+        if not issubclass(enumeration, Enum):
+            raise TypeError("The `sam_tag` decorator may only be applied to `Enum` classes.")
 
-    if not issubclass(enumeration, str):
-        raise TypeError("SAM tags should inherit from `StrEnum` or mix in `str`.")
+        if not issubclass(enumeration, str):
+            raise TypeError("SAM tags should inherit from `StrEnum` or mix in `str`.")
 
-    for tag in enumeration:
-        if not TAG_REGEX.match(tag.value):
-            raise ValueError(f"SAM tags must be two-character alphanumeric strings: {tag}")
+        for tag in enumeration:
+            if not TAG_REGEX.match(tag.value):
+                raise ValueError(f"SAM tags must be two-character alphanumeric strings: {tag}")
 
-        if tag.value in [standard_tag.value for standard_tag in StandardTag]:
-            raise ValueError(
-                f"Locally-defined SAM tags may not conflict with a predefined standard tag: {tag}"
-            )
+            if tag.value in [standard_tag.value for standard_tag in StandardTag]:
+                raise ValueError(
+                    "Locally-defined SAM tags may not conflict with a "
+                    f"predefined standard tag: {tag}"
+                )
 
-    return unique(enumeration)
+        return unique(enumeration)
+
+    # The decorator may be invoked with optional keyword arguments, in which
+    # case there will be no positional arguments. e.g.,
+    # ```
+    # @sam_tag(strict=True)
+    # class CustomTag(StrEnum):
+    #     ...
+    # ```
+    if len(args) == 0:
+        return validate_sam_tag_enum
+
+    # When the decorator is invoked without keyword arguments (and without
+    # parentheses), the enumeration class is passed implicitly as the only
+    # positional argument. i.e.,
+    # ```
+    # @sam_tag
+    # class CustomTag(StrEnum):
+    #     ...
+    # ```
+    elif len(args) == 1:
+        return validate_sam_tag_enum(args[0])
+
+    # NB: I don't think it's possible to pass more than one positional argument
+    # to a class decorator.
+    else:
+        raise AssertionError("unreachable")
