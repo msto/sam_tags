@@ -111,3 +111,41 @@ def test_sam_tag_raises_if_tag_conflicts_with_standard(
         @sam_tag
         class BadTag(StrEnum):
             XB = standard_tag
+
+
+def test_sam_tag_raises_if_tag_is_not_valid_local(
+    standard_tag: str,
+) -> None:
+    """
+    Test that we raise a ValueError if any of the enumeration's values don't
+    adhere to SAM conventions for locally-defined tags.
+    """
+
+    with pytest.raises(
+        ValueError,
+        match="Locally-defined SAM tags may not conflict with a predefined ",
+    ):
+
+        @sam_tag
+        class BadTag(StrEnum):
+            XB = "AA"
+
+
+def test_sam_tag_allows_invalid_local_when_not_strict(
+    standard_tag: str,
+) -> None:
+    """
+    Test that we permit tags which don't adhere to SAM conventions for
+    locally-defined tags when `strict=False`.
+    """
+
+    try:
+
+        @sam_tag(strict=False)
+        class BadTag(StrEnum):
+            XB = "AA"
+
+    except ValueError:
+        raise AssertionError(
+            "Unconventional tags should be permitted when `strict=False`"
+        ) from None

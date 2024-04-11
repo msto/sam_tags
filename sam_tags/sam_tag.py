@@ -18,21 +18,25 @@ TAG_REGEX = re.compile(r"^[A-Za-z][A-Za-z0-9]$")
 
 def sam_tag(
     *args: EnumerationT,
-    strict: bool = False,
+    strict: bool = True,
+    permit_standard_collisions: bool = False,
 ) -> type[Enum] | Callable[..., type[Enum]]:
     """
     Declare a locally-defined group of SAM tags.
 
     This decorator enforces the following conventions on the decorated enum:
 
-    1. SAM tags must be unique.
-    2. SAM tags must not be a predefined standard tag.
-    3. SAM tags must be two-character strings matching the regex
+    1. SAM tags must be two-character strings matching the regex
        `[A-Za-z][A-Za-z0-9]`, i.e. the first character must be an alphabetical
        character and the second must be an alphanumeric character.
-    4. Locally-defined tags must adhere to SAM convention, namely that tags
+    2. SAM tags must be unique.
+    3. SAM tags must not be a predefined standard tag.
+    4. The enumeration class must inherit from `StrEnum` or `str`.
+
+    Additionally, the following conventions are enforced when `strict=True`:
+
+    1. Locally-defined tags must adhere to SAM convention, namely that tags
        start with "X", "Y", or "Z", or are lowercase.
-    5. The enumeration class must inherit from `StrEnum` or `str`.
     """
 
     # TODO: accumulate errors
@@ -52,6 +56,11 @@ def sam_tag(
                 raise ValueError(
                     "Locally-defined SAM tags may not conflict with a "
                     f"predefined standard tag: {tag}"
+                )
+
+            if strict and not _is_valid_local_tag(tag.value):
+                raise ValueError(
+                    "Locally-defined SAM tags must be lowercase or start with " "X, Y, or Z."
                 )
 
         return unique(enumeration)
@@ -81,3 +90,11 @@ def sam_tag(
     # to a class decorator.
     else:
         raise AssertionError("unreachable")
+
+
+def _is_valid_local_tag(tag: str) -> bool:
+    """
+    True if the tag is a valid locally-defined tag.
+    """
+
+    return tag.startswith("X") or tag.startswith("Y") or tag.startswith("Z") or tag.islower()
