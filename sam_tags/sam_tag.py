@@ -41,30 +41,14 @@ def sam_tag(
     """
 
     def validate_sam_tag_enum(enumeration: EnumerationT) -> type[Enum]:
-        if not issubclass(enumeration, Enum):
-            raise TypeError(
-                f"{enumeration.__name__}: The `sam_tag` decorator may only be applied to `Enum` "
-                "subclasses."
-            )
+        # Validate that the enumeration class is a `StrEnum` (or an `Enum` with `str` mixin).
+        _validate_sam_tag_class_is_valid(enumeration)
 
-        if not issubclass(enumeration, str):
-            raise TypeError(
-                f"{enumeration.__name__}: SAM tag classes should inherit from `StrEnum` or mix in "
-                "`str`."
-            )
+        # Validate that all SAM tags are unique.
+        _validate_sam_tags_are_unique(enumeration)
 
-        _validate_unique_sam_tags(enumeration)
-
-        errs: list[str] = []
-        for tag in enumeration:
-            err_msg = _validate_sam_tag(tag, strict=strict)
-            if err_msg is not None:
-                errs.append(err_msg)
-
-        if len(errs) > 0:
-            raise ValueError(
-                f"{enumeration.__name__}: The following SAM tags are invalid:\n" + "\n".join(errs)
-            )
+        # Validate that all SAM tags are valid per SAM spec.
+        _validate_sam_tags(enumeration, strict=strict)
 
         return enumeration
 
@@ -95,12 +79,33 @@ def sam_tag(
         raise AssertionError("unreachable")
 
 
-def _validate_unique_sam_tags(enumeration: EnumerationT) -> None:
+def _validate_sam_tag_class_is_valid(enumeration: EnumerationT) -> None:
+    """
+    Require the SAM tag class to inherit from `StrEnum`.
+
+    Raises:
+        `TypeError` if the class does not inherit from `Enum` and `str`.
+    """
+    if not issubclass(enumeration, Enum):
+        raise TypeError(
+            f"{enumeration.__name__}: The `sam_tag` decorator may only be applied to `Enum` "
+            "subclasses."
+        )
+
+    if not issubclass(enumeration, str):
+        raise TypeError(
+            f"{enumeration.__name__}: SAM tag classes should inherit from `StrEnum` or mix in "
+            "`str`."
+        )
+
+
+def _validate_sam_tags_are_unique(enumeration: EnumerationT) -> None:
     """
     Validate that all SAM tags are unique.
 
     `enum.unique` does this, but its error reporting is limited. Namely, if more than two members
-    are duplicates, the duplicated members are reported in pairs instead of as a single group. And, the duplicated *value* is not reported - only the names of the members with duplicated values.
+    are duplicates, the duplicated members are reported in pairs instead of as a single group. And,
+    the duplicated *value* is not reported - only the names of the members with duplicated values.
 
     Raises:
         ValueError: if any of the defined SAM tag values are duplicated.
@@ -123,6 +128,26 @@ def _validate_unique_sam_tags(enumeration: EnumerationT) -> None:
         raise ValueError(
             f"{enumeration.__name__}: The following SAM tags have duplicate values:\n"
             + "\n".join(duplicates)
+        )
+
+
+def _validate_sam_tags(enumeration: EnumerationT, strict: bool = True) -> None:
+    """
+    Validate that SAM tags meet convention.
+
+    Raises:
+        ValueError if any of the defined SAM tags are invalid. All SAM tags are validated and errors
+        are accumulated, so a single exception is raised with all errors.
+    """
+    errs: list[str] = []
+    for tag in enumeration:
+        err_msg = _validate_sam_tag(tag, strict=strict)
+        if err_msg is not None:
+            errs.append(err_msg)
+
+    if len(errs) > 0:
+        raise ValueError(
+            f"{enumeration.__name__}: The following SAM tags are invalid:\n" + "\n".join(errs)
         )
 
 
