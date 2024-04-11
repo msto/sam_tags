@@ -87,12 +87,20 @@ def test_sam_tag_raises_if_tags_are_not_unique() -> None:
     unique.
     """
 
-    with pytest.raises(ValueError, match="duplicate values found"):
+    with pytest.raises(
+        ValueError,
+        match="BadTag: The following SAM tags have duplicate values",
+    ) as excinfo:
 
         @sam_tag
         class BadTag(StrEnum):
             XB = "xb"
             XC = "xb"
+            XD = "xb"
+            XF = "xf"
+            XG = "xf"
+
+    assert str(excinfo.value).endswith("  XB, XC, XD: 'xb'\n  XF, XG: 'xf'")
 
 
 @pytest.mark.parametrize("standard_tag", [tag.value for tag in StandardTag])

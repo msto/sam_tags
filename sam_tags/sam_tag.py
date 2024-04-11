@@ -1,6 +1,7 @@
 import re
+from collections import Counter
+from collections import defaultdict
 from enum import Enum
-from enum import unique
 from typing import Callable
 from typing import TypeVar
 
@@ -52,6 +53,8 @@ def sam_tag(
                 "`str`."
             )
 
+        _validate_unique_sam_tags(enumeration)
+
         errs: list[str] = []
         for tag in enumeration:
             err_msg = _validate_sam_tag(tag, strict=strict)
@@ -63,7 +66,7 @@ def sam_tag(
                 f"{enumeration.__name__}: The following SAM tags are invalid:\n" + "\n".join(errs)
             )
 
-        return unique(enumeration)
+        return enumeration
 
     # When the decorator is invoked with keyword arguments (or with
     # parentheses), there are no positional arguments. e.g.,
@@ -90,6 +93,37 @@ def sam_tag(
     # to a class decorator.
     else:
         raise AssertionError("unreachable")
+
+
+def _validate_unique_sam_tags(enumeration: EnumerationT) -> None:
+    """
+    Validate that all SAM tags are unique.
+
+    `enum.unique` does this, but its error reporting is limited. Namely, if more than two members
+    are duplicates, the duplicated members are reported in pairs instead of as a single group. And, the duplicated *value* is not reported - only the names of the members with duplicated values.
+
+    Raises:
+        ValueError: if any of the defined SAM tag values are duplicated.
+    """
+
+    values_to_names: dict[str, list[str]] = defaultdict(list)
+    value_counts: Counter[str] = Counter()
+
+    for tag_name, tag in enumeration.__members__.items():
+        values_to_names[tag.value].append(tag_name)
+        value_counts[tag.value] += 1
+
+    duplicates: list[str] = []
+    for tag_value, tag_count in value_counts.items():
+        if tag_count > 1:
+            msg = "  " + ", ".join(sorted(values_to_names[tag_value])) + f": '{tag_value}'"
+            duplicates.append(msg)
+
+    if len(duplicates) > 0:
+        raise ValueError(
+            f"{enumeration.__name__}: The following SAM tags have duplicate values:\n"
+            + "\n".join(duplicates)
+        )
 
 
 def _validate_sam_tag(tag: Enum, strict: bool = False) -> str | None:
