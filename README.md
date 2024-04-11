@@ -9,4 +9,40 @@ SAM tags
 
 ## Quickstart
 
-TODO
+The `sam_tags` decorator permits the specification of custom enumerations that adhere to the conventions described in the SAM specification.
+
+```py
+from enum import StrEnum
+from sam_tags import sam_tag
+
+
+@sam_tag
+class CustomTag(StrEnum):
+    """Custom SAM tags."""
+
+    XF = "XF"
+    """Some filter."""
+
+    vl = "vl"
+    """Some value."""
+```
+
+The predefined standard tags are available as a built-in class.
+
+```py
+from sam_tags import StandardTag
+
+# read: pysam.AlignedSegment
+read.get_tag(StandardTag.RX)
+```
+
+Docstrings on each predefined tag permit simple reference within an IDE. 
+
+![](assets/screenshot.png)
+
+Built-in classes are also available for sets of tags used in popular bioinformatics software.
+
+```py
+from sam_tags.community import BwaTag
+from sam_tags.community import CellrangerTag
+```
