@@ -249,9 +249,8 @@ class StandardTag(StrEnum):
     """
     Library.
 
-    `LB:Z:library`: The library from which the read has been sequenced. If
-    `@RG` headers are present, then _library_ must match the `RG-LB` field of
-    one of the headers.
+    `LB:Z:library`: The library from which the read has been sequenced. If `@RG` headers are
+    present, then _library_ must match the `RG-LB` field of one of the headers.
     """
 
     MC = "MC"
@@ -265,39 +264,32 @@ class StandardTag(StrEnum):
     r"""
     String encoding mismatched and deleted reference bases.
 
-    `MD:Z:[0-9]+(([A-Z]|\^[A-Z]+)[0-9]+)*`: String encoding mismatched and
-    deleted reference bases, used in conjunction with the CIGAR and SEQ fields
-    to reconstruct the bases of the reference sequence interval to which the
-    alignment has been mapped. This can enable variant calling without
-    requiring access to the entire original reference.
+    `MD:Z:[0-9]+(([A-Z]|\^[A-Z]+)[0-9]+)*`: String encoding mismatched and deleted reference bases,
+    used in conjunction with the CIGAR and SEQ fields to reconstruct the bases of the reference
+    sequence interval to which the alignment has been mapped. This can enable variant calling
+    without requiring access to the entire original reference.
 
-    The MD string consists of the following items, concatenated without
-    additional delimiter characters:
-    * [0-9]+, indicating a run of reference bases that are identical to the
-      corresponding SEQ bases;
-    * [A-Z], identifying a single reference base that differs from the SEQ base
-      aligned at that position;
-    * \^[A-Z]+, identifying a run of reference bases that have been deleted in
-      the alignment.
+    The MD string consists of the following items, concatenated without additional delimiter
+    characters:
+    * [0-9]+, indicating a run of reference bases that are identical to the corresponding SEQ bases;
+    * [A-Z], identifying a single reference base that differs from the SEQ base aligned at that
+      position;
+    * \^[A-Z]+, identifying a run of reference bases that have been deleted in the alignment.
 
-    As shown in the complete regular expression above, numbers alternate with
-    the other items. Thus if two mismatches or deletions are adjacent without a
-    run of identical bases between them, a '0' (indicating a 0-length run) must
-    be used to separate them in the MD string.
+    As shown in the complete regular expression above, numbers alternate with the other items. Thus
+    if two mismatches or deletions are adjacent without a run of identical bases between them, a '0'
+    (indicating a 0-length run) must be used to separate them in the MD string.
 
-    Clipping, padding, reference skips, and insertions ('H', 'S', 'P', 'N', and
-    'I' CIGAR operations) are not represented in the MD string. When
-    reconstructing the reference sequence, inserted and soft-clipped SEQ bases
-    are omitted as determined by tracking 'I' and 'S' operations in the CIGAR
-    string. (If the CIGAR string contains 'N' operations, then the
-             corresponding skipped parts of the reference sequence cannot be
-             reconstructed.)
+    Clipping, padding, reference skips, and insertions ('H', 'S', 'P', 'N', and 'I' CIGAR
+    operations) are not represented in the MD string. When reconstructing the reference sequence,
+    inserted and soft-clipped SEQ bases are omitted as determined by tracking 'I' and 'S' operations
+    in the CIGAR string. (If the CIGAR string contains 'N' operations, then the corresponding
+    skipped parts of the reference sequence cannot be reconstructed.)
 
-    For example, a string '10A5^AC6' means from the leftmost reference base in
-    the alignment, there are 10 matches followed by an A on the reference which
-    is different from the aligned read base; the next 5 reference bases are
-    matches followed by a 2bp deletion from the reference; the deleted sequence
-    is AC; the last 6 bases are matches.
+    For example, a string '10A5^AC6' means from the leftmost reference base in the alignment, there
+    are 10 matches followed by an A on the reference which is different from the aligned read base;
+    the next 5 reference bases are matches followed by a 2bp deletion from the reference; the
+    deleted sequence is AC; the last 6 bases are matches.
     """
 
     MF = "MF"
