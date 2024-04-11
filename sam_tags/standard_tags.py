@@ -18,7 +18,7 @@ class StandardTag(StrEnum):
     The smallest template-independent mapping quality in the template.
 
     `AM:i:score`: The smallest template-independent mapping quality of any segment in the same
-    template as this read. (See also SM.)
+    template as this read. (See also `SM`.)
     """
 
     AS = "AS"
@@ -55,7 +55,7 @@ class StandardTag(StrEnum):
     the `OX` tag. Same encoding as QUAL, i.e., Phred score + 33. The `OX` tags should match the `BZ`
     tag in length. In the case of multiple unique molecular identifiers (e.g., one on each end of
     the template) the recommended implementation concatenates all the quality strings with a space
-    (‘ ’) between the different strings.
+    (' ') between the different strings.
     """
 
     CB = "CB"
@@ -83,16 +83,20 @@ class StandardTag(StrEnum):
     """
     BAM only: CIGAR in BAM's binary encoding if (and only if) it consists of >65535 operators.
 
-    `CG:B:I,encodedCigar`: Real CIGAR in its binary form if (and only if) it
-    contains >65535 operations. This is a BAM file only tag as a workaround of
-    BAM's incapability to store long CIGARs in the standard way. SAM and CRAM
-    files created with updated tools aware of the workaround are not expected
-    to contain this tag. See also the footnote in Section 4.2 of the SAM spec
-    for details.
+    `CG:B:I,encodedCigar`: Real CIGAR in its binary form if (and only if) it contains >65535
+    operations. This is a BAM file only tag as a workaround of BAM's incapability to store long
+    CIGARs in the standard way. SAM and CRAM files created with updated tools aware of the
+    workaround are not expected to contain this tag. See also the footnote in Section 4.2 of the SAM
+    spec for details.
     """
 
     CM = "CM"
-    """Edit distance between the color sequence and the color reference (see also NM)."""
+    """
+    Edit distance between the color sequence and the color reference (see also NM).
+
+    `CM:i:distance`: Edit distance between the color sequence and the color reference (see also
+    `NM`).
+    """
 
     CO = "CO"
     """
@@ -109,7 +113,12 @@ class StandardTag(StrEnum):
     """
 
     CQ = "CQ"
-    """Color read base qualities."""
+    """
+    Color read base qualities.
+
+    `CQ:Z:qualities`: Color read quality on the original strand of the read. Same encoding as QUAL;
+    same length as `CS`.
+    """
 
     CR = "CR"
     """
@@ -119,15 +128,36 @@ class StandardTag(StrEnum):
     reported by the sequencing machine, with the corresponding base quality scores (optionally)
     stored in `CY`. Sequencing errors etc aside, all reads with the same `CR` tag likely derive from
     the same cell. In the case of the cellular barcode being based on multiple barcode sequences the
-    recommended implementation concatenates all the barcodes with a hyphen (‘-’) between the
+    recommended implementation concatenates all the barcodes with a hyphen ('-') between the
     different barcodes.
     """
 
     CS = "CS"
-    """Color read sequence."""
+    """
+    Color read sequence.
+
+    `CS:Z:sequence`: Color read sequence on the original strand of the read. The primer base must be
+    included.
+    """
 
     CT = "CT"
-    """Complete read annotation tag, used for consensus annotation dummy features."""
+    """
+    Complete read annotation tag, used for consensus annotation dummy features.
+
+    `CT:Z:strand;type(;key(=value)?)*`: Complete read annotation tag, used for consensus
+    annotation dummy features.
+
+    The `CT` tag is intended primarily for annotation dummy reads, and consists of a _strand_,
+    _type_ and zero or more _key_=_value_ pairs, each separated with semicolons. The _strand_ field
+    has four values as in GFF3, and supplements FLAG bit 0x10 to allow unstranded ('.'), and
+    stranded but unknown strand ('?') annotation. For these and annotation on the forward strand
+    (_strand_ set to '+'), do not set FLAG bit 0x10. For annotation on the reverse strand, set the
+    _strand_ to '-' and set FLAG bit 0x10.
+
+    The _type_ and any _keys_ and their optional _values_ are all percent encoded according to
+    RFC3986 to escape meta-characters '=', '%', ';', '|' or non-printable characters not matched by
+    the isprint() macro (with the C locale). For example a percent sign becomes '`%25`'.
+    """
 
     CY = "CY"
     """
@@ -136,29 +166,38 @@ class StandardTag(StrEnum):
     `CY:Z:qualities+`: Phred quality of the cellular barcode sequence in the `CR` tag. Same encoding
     as QUAL, i.e., Phred score + 33. The lengths of the `CY` and `CR` tags must match. In the case
     of the cellular barcode being based on multiple barcode sequences the recommended implementation
-    concatenates all the quality strings with with spaces (‘ ’) between the different strings.
+    concatenates all the quality strings with with spaces (' ') between the different strings.
     """
 
     E2 = "E2"
     """
     The 2nd most likely base calls.
 
-    `E2:Z:bases`: The 2nd most likely base calls. Same encoding and same length
-    as SEQ. See also U2 for associated quality values.
+    `E2:Z:bases`: The 2nd most likely base calls. Same encoding and same length as SEQ. See also
+    `U2` for associated quality values.
     """
 
     FI = "FI"
     """
     The index of segment in the template.
+
+    `FI:i:int`: The index of segment in the template.
     """
 
     FS = "FS"
     """
     Segment suffix.
+
+    `FS:Z:str`: Segment suffix.
     """
 
     FZ = "FZ"
-    """Flow signal intensities."""
+    """
+    Flow signal intensities.
+
+    `FZ:B:S,intensities`: Flow signal intensities on the original strand of the read, stored as
+    `(uint16 t) round(value * 100.0)`.
+    """
 
     GC = "GC"
     """Reserved for backwards compatibility reasons."""
@@ -170,28 +209,39 @@ class StandardTag(StrEnum):
     """Reserved for backwards compatibility reasons."""
 
     H0 = "H0"
-    """Number of perfect hits."""
+    """
+    Number of perfect hits.
+
+    `H0:i:count`: Number of perfect hits.
+    """
 
     H1 = "H1"
-    """Number of 1-difference hits (see also NM)."""
+    """
+    Number of 1-difference hits (see also `NM`).
+
+    `H1:i:count`: Number of 1-difference hits (see also `NM`).
+    """
 
     H2 = "H2"
-    """Number of 2-difference hits."""
+    """
+    Number of 2-difference hits.
+
+    `H2:i:count`: Number of 2-difference hits.
+    """
 
     HI = "HI"
     """
     Query hit index.
 
-    `HI:i:i`: Query hit index, indicating the alignment record is the i-th one
-    stored in SAM.
+    `HI:i:i`: Query hit index, indicating the alignment record is the i-th one stored in SAM.
     """
 
     IH = "IH"
     """
     Query hit total count.
 
-    `IH:i:count` Number of alignments stored in the file that contain the query
-    in the current record.
+    `IH:i:count`: Number of alignments stored in the file that contain the query in the current
+    record.
     """
 
     LB = "LB"
@@ -279,41 +329,71 @@ class StandardTag(StrEnum):
     """
     Number of reported alignments that contain the query in the current record.
 
-    `NH:i:count`: Number of reported alignments that contain the query in the
-    current record.
+    `NH:i:count`: Number of reported alignments that contain the query in the current record.
     """
 
     NM = "NM"
     """
     Edit distance to the reference.
 
-    `NM:i:count`: Number of differences (mismatches plus inserted and deleted
-    bases) between the sequence and reference, counting only (case-insensitive)
-    A, C, G and T bases in sequence and reference as potential matches, with
-    everything else being a mismatch. Note this means that ambiguity codes in
-    both sequence and reference that match each other, such as 'N' in both, or
-    compatible codes such as 'A' and 'R', are still counted as mismatches. The
-    special sequence base '=' will always be considered to be a match, even if
-    the reference is ambiguous at that point. Alignment reference skips,
-    padding, soft and hard clipping ('N', 'P', 'S' and 'H' CIGAR operations) do
-    not count as mismatches, but insertions and deletions count as one mismatch
-    per base.
+    `NM:i:count`: Number of differences (mismatches plus inserted and deleted bases) between the
+    sequence and reference, counting only (case-insensitive) A, C, G and T bases in sequence and
+    reference as potential matches, with everything else being a mismatch. Note this means that
+    ambiguity codes in both sequence and reference that match each other, such as 'N' in both, or
+    compatible codes such as 'A' and 'R', are still counted as mismatches. The special sequence base
+    '=' will always be considered to be a match, even if the reference is ambiguous at that point.
+    Alignment reference skips, padding, soft and hard clipping ('N', 'P', 'S' and 'H' CIGAR
+    operations) do not count as mismatches, but insertions and deletions count as one mismatch per
+    base.
 
-    Note that historically this has been ill-defined and both data and tools
-    exist that disagree with this definition.
+    Note that historically this has been ill-defined and both data and tools exist that disagree
+    with this definition.
     """
 
     OA = "OA"
-    """Original alignment."""
+    """
+    Original alignment.
+
+    `OA:Z:(RNAME,POS,strand,CIGAR,MAPQ,NM;)+`: The original alignment information of the record
+    prior to realignment or unalignment by a subsequent tool. Each original alignment entry contains
+    the following six field values from the original record, generally in their textual SAM
+    representations, separated by commas (',') and terminated by a semicolon (';'): RNAME, which
+    must be explicit (unlike RNEXT, '=' may not be used here); 1-based POS; '+' or '-', indicating
+    forward/reverse strand respectively (as per bit 0x10 of FLAG); CIGAR; MAPQ; `NM` tag value,
+    which may be omitted (though the preceding comma must be retained).
+
+    In the presence of an existing `OA` tag, a subsequent tool may append another original alignment
+    entry after the semicolon, adding to—rather than replacing—the existing `OA` information.
+
+    The `OA` field is designed to provide record-level information that can be useful for
+    understanding the provenance of the information in a record. It is not designed to provide a
+    complete history of the template alignment information. In particular, realignments resulting in
+    the the removal of Secondary or Supplementary records will cause the loss of all tags associated
+    with those records, and may also leave the `SA` tag in an invalid state.
+    """
 
     OC = "OC"
-    """Original CIGAR (deprecated; use OA instead)."""
+    """
+    Original CIGAR (deprecated; use OA instead).
+
+    `OC:Z:cigar`: Original CIGAR, usually before realignment. Deprecated in favour of the more
+    general `OA`.
+    """
 
     OP = "OP"
-    """Original mapping position (deprecated; use OA instead)."""
+    """
+    Original mapping position (deprecated; use OA instead).
+
+    `OP:i:pos`: Original 1-based POS, usually before realignment. Deprecated in favour of the more
+    general `OA`.
+    """
 
     OQ = "OQ"
-    """Original base quality."""
+    """
+    Original base quality.
+
+    `OQ:Z:qualities`: Original base quality, usually before recalibration. Same encoding as QUAL.
+    """
 
     OX = "OX"
     """
@@ -322,54 +402,68 @@ class StandardTag(StrEnum):
     `OX:Z:sequence+`: Raw (uncorrected) unique molecular identifier bases, with any quality scores
     (optionally) stored in the `BZ` tag. In the case of multiple unique molecular identifiers (e.g.,
     one on each end of the template) the recommended implementation concatenates all the barcodes
-    with a hyphen (‘-’) between the different barcodes.
+    with a hyphen ('-') between the different barcodes.
     """
 
     PG = "PG"
     """
     Program.
 
-    `PG:Z:program_id`: Program. Value matches the header `PG-ID` tag if `@PG`
-    is present.
+    `PG:Z:program_id`: Program. Value matches the header `PG-ID` tag if `@PG` is present.
     """
 
     PQ = "PQ"
     """
     Phred likelihood of the template.
 
-    `PQ:i:score`: Phred likelihood of the template, conditional on the mapping
-    locations of both/all segments being correct.
+    `PQ:i:score`: Phred likelihood of the template, conditional on the mapping locations of both/all
+    segments being correct.
     """
 
     PT = "PT"
-    """Read annotations for parts of the padded read sequence."""
+    """
+    Read annotations for parts of the padded read sequence.
+
+    `PT:Z:annotag(\|annotag)*` where each _annotag_ matches
+    _start_;_end_;_strand_;_type_(;_key_(=_value_)?)*: Read annotations for parts of the padded read
+    sequence.
+
+    The `PT` tag value has the format of a series of annotation tags separated by '|', each
+    annotating a sub-region of the read. Each tag consists of _start_, _end_, _strand_, _type_ and
+    zero or more _key_=_value_ pairs, each separated with semicolons. Start and end are 1-based
+    positions between one and the sum of the M/I/D/P/S/=/X CIGAR operators, i.e., SEQ length plus
+    any pads. Note any editing of the CIGAR string may require updating the `PT` tag coordinates, or
+    even invalidate them. As in GFF3, _strand_ is one of '+' for forward strand tags, '-' for
+    reverse strand, '.' for unstranded or '?' for stranded but unknown strand.
+
+    The _type_ and any _keys_ and their optional _values_ are all percent encoded as in the `CT`
+    tag.
+    """
 
     PU = "PU"
     """
     Platform unit.
 
-    `PU:Z:platformunit`: The platform unit in which the read was sequenced. If
-    `@RG` headers are present, then _platformunit_ must match the `RG-PU` field
-    of one of the headers.
+    `PU:Z:platformunit`: The platform unit in which the read was sequenced. If `@RG` headers are
+    present, then _platformunit_ must match the `RG-PU` field of one of the headers.
     """
 
     Q2 = "Q2"
     """
     Phred quality of the mate/next segment sequence in the `R2` tag.
 
-    `Q2:Z:qualities`: Phred quality of the mate/next segment sequence in the
-    `R2` tag. Same encoding as QUAL.
+    `Q2:Z:qualities`: Phred quality of the mate/next segment sequence in the `R2` tag. Same encoding
+    as QUAL.
     """
 
     QT = "QT"
     """
     Phred quality of the sample barcode sequence in the `BC` tag.
 
-    `QT:Z:qualities` Phred quality of the sample barcode sequence in the `BC`
-    tag. Same encoding as QUAL, i.e., Phred score + 33. In the case of multiple
-    unique molecular identifiers (e.g., one on each end of the template) the
-    recommended implementation concatenates all the quality strings with spaces
-    (' ') between the different strings from the same template.
+    `QT:Z:qualities`: Phred quality of the sample barcode sequence in the `BC` tag. Same encoding as
+    QUAL, i.e., Phred score + 33. In the case of multiple unique molecular identifiers (e.g., one on
+    each end of the template) the recommended implementation concatenates all the quality strings
+    with spaces (' ') between the different strings from the same template.
     """
 
     QX = "QX"
@@ -381,24 +475,23 @@ class StandardTag(StrEnum):
     bases and qualities can be stored in `OX` and `BZ` respectively.) The lengths of the `QX` and
     the `RX` tags must match. In the case of multiple unique molecular identifiers (e.g., one on
     each end of the template) the recommended implementation concatenates all the quality strings
-    with a space (‘ ’) between the different strings.
+    with a space (' ') between the different strings.
     """
 
     R2 = "R2"
     """
     Sequence of the mate/next segment in the template.
 
-    `R2:Z:bases`: Sequence of the mate/next segment in the template. See also
-    `Q2` for any associated quality values.
+    `R2:Z:bases`: Sequence of the mate/next segment in the template. See also `Q2` for any
+    associated quality values.
     """
 
     RG = "RG"
     """
     Read group.
 
-    `RG:Z:readgroup`: The read group to which the read belongs. If `@RG`
-    headers are present, then _readgroup_ must match the `RG-ID` field of one
-    of the headers.
+    `RG:Z:readgroup`: The read group to which the read belongs. If `@RG` headers are present, then
+    _readgroup_ must match the `RG-ID` field of one of the headers.
     """
 
     RT = "RT"
@@ -412,9 +505,10 @@ class StandardTag(StrEnum):
     corrected or uncorrected. Unlike `MI`, the value may be non-unique in the file. Should be
     comprised of a sequence of bases. In the case of multiple unique molecular identifiers (e.g.,
     one on each end of the template) the recommended implementation concatenates all the barcodes
-    with a hyphen (‘-’) between the different barcodes.  If the bases represent corrected bases, the
-    original sequence can be stored in `OX` (similar to `OQ` storing the original qualities of
-    bases.)
+    with a hyphen ('-') between the different barcodes.
+
+    If the bases represent corrected bases, the original sequence can be stored in `OX` (similar to
+    `OQ` storing the original qualities of bases.)
     """
 
     S2 = "S2"
@@ -424,21 +518,19 @@ class StandardTag(StrEnum):
     """
     Other canonical alignments in a chimeric alignment.
 
-    `SA:Z:(rname,pos,strand,CIGAR,mapQ,NM;)+`: Other canonical alignments in a
-    chimeric alignment, for- matted as a semicolon-delimited list. Each element
-    in the list represents a part of the chimeric align- ment.  Conventionally,
-    at a supplementary line, the first element points to the primary line.
-    _Strand_ is either '+' or '-', indicating forward/reverse strand,
-    corresponding to FLAG bit 0x10. _Pos_ is a 1-based coordinate.
+    `SA:Z:(rname,pos,strand,CIGAR,mapQ,NM;)+`: Other canonical alignments in a chimeric alignment,
+    for- matted as a semicolon-delimited list. Each element in the list represents a part of the
+    chimeric align- ment.  Conventionally, at a supplementary line, the first element points to the
+    primary line.  _Strand_ is either '+' or '-', indicating forward/reverse strand, corresponding
+    to FLAG bit 0x10. _Pos_ is a 1-based coordinate.
     """
 
     SM = "SM"
     """
     Template-independent mapping quality.
 
-    `SM:i:score`: Template-independent mapping quality, i.e., the mapping
-    quality if the read were mapped as a single read rather than as part of a
-    read pair or template.
+    `SM:i:score`: Template-independent mapping quality, i.e., the mapping quality if the read were
+    mapped as a single read rather than as part of a read pair or template.
     """
 
     SQ = "SQ"
@@ -455,23 +547,20 @@ class StandardTag(StrEnum):
     """
     Transcript strand.
 
-    `TS:A:strand`: Strand ('+' or '-') of the transcript to which the read has
-    been mapped.
+    `TS:A:strand`: Strand ('+' or '-') of the transcript to which the read has been mapped.
     """
 
     U2 = "U2"
     """
     Phred probability of the 2nd call being wrong conditional on the best being wrong.
 
-    `U2:Z:score`: Phred probability of the 2nd call being wrong conditional on
-    the best being wrong. The same encoding and length as QUAL. See also `E2` for
-    associated base calls.
+    `U2:Z:score`: Phred probability of the 2nd call being wrong conditional on the best being wrong.
+    The same encoding and length as QUAL. See also `E2` for associated base calls.
     """
 
     UQ = "UQ"
     """
     Phred likelihood of the segment, conditional on the mapping being correct.
 
-    `UQ:i:score`: Phred likelihood of the segment, conditional on the mapping
-    being correct.
+    `UQ:i:score`: Phred likelihood of the segment, conditional on the mapping being correct.
     """
