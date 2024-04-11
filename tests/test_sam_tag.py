@@ -3,6 +3,7 @@ from enum import StrEnum
 
 import pytest
 
+from sam_tags import StandardTag
 from sam_tags import sam_tag
 
 
@@ -83,3 +84,22 @@ def test_sam_tag_raises_if_tags_are_not_unique() -> None:
         class BadTag(StrEnum):
             XB = "xb"
             XC = "xb"
+
+
+@pytest.mark.parametrize("standard_tag", [tag.value for tag in StandardTag])
+def test_sam_tag_raises_if_tag_conflicts_with_standard(
+    standard_tag: str,
+) -> None:
+    """
+    Test that we raise a ValueError if any of the enumeration's values conflict
+    with a predefined standard tag.
+    """
+
+    with pytest.raises(
+        ValueError,
+        match="Locally-defined SAM tags may not conflict with a predefined ",
+    ):
+
+        @sam_tag
+        class BadTag(StrEnum):
+            XB = standard_tag

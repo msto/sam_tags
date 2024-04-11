@@ -3,6 +3,8 @@ from enum import Enum
 from enum import unique
 from typing import TypeVar
 
+from sam_tags.standard_tag import StandardTag
+
 EnumerationT = TypeVar("EnumerationT", bound=type[Enum])
 """
 An Enumeration type.
@@ -32,17 +34,18 @@ def sam_tag(enumeration: EnumerationT) -> type[Enum]:
     # TODO: accumulate errors
 
     if not issubclass(enumeration, Enum):
-        raise TypeError(
-            "The `sam_tag` decorator may only be applied to `Enum` classes."
-        )
+        raise TypeError("The `sam_tag` decorator may only be applied to `Enum` classes.")
 
     if not issubclass(enumeration, str):
         raise TypeError("SAM tags should inherit from `StrEnum` or mix in `str`.")
 
     for tag in enumeration:
         if not TAG_REGEX.match(tag.value):
+            raise ValueError(f"SAM tags must be two-character alphanumeric strings: {tag}")
+
+        if tag.value in [standard_tag.value for standard_tag in StandardTag]:
             raise ValueError(
-                f"SAM tags must be two-character alphanumeric strings: {tag}"
+                f"Locally-defined SAM tags may not conflict with a predefined standard tag: {tag}"
             )
 
     return unique(enumeration)
