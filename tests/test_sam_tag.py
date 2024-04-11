@@ -69,3 +69,17 @@ def test_sam_tag_raises_if_tags_are_not_two_characters(tag: str) -> None:
         @sam_tag
         class BadTag(StrEnum):
             XB = tag
+
+
+def test_sam_tag_raises_if_tags_are_not_unique() -> None:
+    """
+    Test that we raise a ValueError if any of the enumeration's values are not
+    unique.
+    """
+
+    with pytest.raises(ValueError, match="duplicate values found"):
+
+        @sam_tag
+        class BadTag(StrEnum):
+            XB = "xb"
+            XC = "xb"
