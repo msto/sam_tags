@@ -141,15 +141,15 @@ def test_sam_tag_raises_if_tag_is_not_valid_local() -> None:
     assert msg.endswith("AA: Locally-defined SAM tags must be lowercase or start with X, Y, or Z.")
 
 
-def test_sam_tag_allows_invalid_local_when_not_strict() -> None:
+def test_sam_tag_allows_invalid_local() -> None:
     """
-    Test that we permit tags which don't adhere to SAM conventions for
-    locally-defined tags when `strict=False`.
+    Test that we permit tags which don't adhere to SAM conventions for locally-defined tags when
+    `allow_unconventional_local_names`.
     """
 
     try:
 
-        @sam_tag(strict=False)
+        @sam_tag(allow_unconventional_local_names=True)
         class BadTag(StrEnum):
             XB = "AA"
 

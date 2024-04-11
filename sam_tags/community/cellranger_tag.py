@@ -3,7 +3,7 @@ from enum import StrEnum
 from sam_tags import sam_tag
 
 
-@sam_tag(strict=False, permit_standard_tag_collisions=True)
+@sam_tag(allow_unconventional_local_names=True, allow_standard_tag_collisions=True)
 class CellrangerTag(StrEnum):
     """
     CellRanger-specific optional fields.
