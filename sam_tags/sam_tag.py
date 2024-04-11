@@ -20,7 +20,7 @@ TAG_REGEX = re.compile(r"^[A-Za-z][A-Za-z0-9]$")
 def sam_tag(
     *args: EnumerationT,
     strict: bool = True,
-    permit_standard_collisions: bool = False,
+    permit_standard_tag_collisions: bool = False,
 ) -> type[Enum] | Callable[..., type[Enum]]:
     """
     Declare a locally-defined group of SAM tags.
@@ -38,6 +38,10 @@ def sam_tag(
 
     1. Locally-defined tags must adhere to SAM convention, namely that tags
        start with "X", "Y", or "Z", or are lowercase.
+
+    Args:
+        permit_standard_tag_collisions: If True, custom SAM tags may be the same as a predefined
+            standard tag.
     """
 
     def validate_sam_tag_enum(enumeration: EnumerationT) -> type[Enum]:
@@ -48,7 +52,11 @@ def sam_tag(
         _validate_sam_tags_are_unique(enumeration)
 
         # Validate that all SAM tags are valid per SAM spec.
-        _validate_sam_tags(enumeration, strict=strict)
+        _validate_sam_tags(
+            enumeration,
+            strict=strict,
+            permit_standard_tag_collisions=permit_standard_tag_collisions,
+        )
 
         return enumeration
 
@@ -131,7 +139,11 @@ def _validate_sam_tags_are_unique(enumeration: EnumerationT) -> None:
         )
 
 
-def _validate_sam_tags(enumeration: EnumerationT, strict: bool = True) -> None:
+def _validate_sam_tags(
+    enumeration: EnumerationT,
+    strict: bool = True,
+    permit_standard_tag_collisions: bool = False,
+) -> None:
     """
     Validate that SAM tags meet convention.
 
@@ -141,7 +153,11 @@ def _validate_sam_tags(enumeration: EnumerationT, strict: bool = True) -> None:
     """
     errs: list[str] = []
     for tag in enumeration:
-        err_msg = _validate_sam_tag(tag, strict=strict)
+        err_msg = _validate_sam_tag(
+            tag,
+            strict=strict,
+            permit_standard_tag_collisions=permit_standard_tag_collisions,
+        )
         if err_msg is not None:
             errs.append(err_msg)
 
@@ -151,7 +167,11 @@ def _validate_sam_tags(enumeration: EnumerationT, strict: bool = True) -> None:
         )
 
 
-def _validate_sam_tag(tag: Enum, strict: bool = False) -> str | None:
+def _validate_sam_tag(
+    tag: Enum,
+    strict: bool = True,
+    permit_standard_tag_collisions: bool = False,
+) -> str | None:
     """
     Validate an individual SAM tag.
 
@@ -162,7 +182,9 @@ def _validate_sam_tag(tag: Enum, strict: bool = False) -> str | None:
     if TAG_REGEX.match(tag.value) is None:
         return f"  {tag}: SAM tags must be two-character alphanumeric strings."
 
-    if tag.value in [standard_tag.value for standard_tag in StandardTag]:
+    if not permit_standard_tag_collisions and tag.value in [
+        standard_tag.value for standard_tag in StandardTag
+    ]:
         return f"  {tag}: Locally-defined SAM tags may not conflict with a predefined standard tag."
 
     if strict and not _is_valid_local_tag(tag.value):
