@@ -17,8 +17,8 @@ class StandardTag(StrEnum):
     """
     The smallest template-independent mapping quality in the template.
 
-    `AM:i:score`: The smallest template-independent mapping quality of any segment
-    in the same template as this read. (See also SM.)
+    `AM:i:score`: The smallest template-independent mapping quality of any segment in the same
+    template as this read. (See also SM.)
     """
 
     AS = "AS"
@@ -29,22 +29,48 @@ class StandardTag(StrEnum):
     """
 
     BC = "BC"
-    """Barcode sequence identifying the sample."""
+    """
+    Barcode sequence identifying the sample.
+
+    `BC:Z:sequence`: Barcode sequence (Identifying the sample/library), with any quality scores
+    (optionally) stored in the `QT` tag. The `BC` tag should match the `QT` tag in length. In the
+    case of multiple unique molecular identifiers (e.g., one on each end of the template) the
+    recommended implementation con- catenates all the barcodes and places a hyphen ('-') between the
+    barcodes from the same template.
+    """
 
     BQ = "BQ"
     """
     Offset to base alignment quality (BAQ).
 
-    `BQ:Z:qualities`: Offset to base alignment quality (BAQ), of the same length
-    as the read sequence. At the i-th read base, BAQ_i = Q_i − (BQ_i − 64) where
-    Q_i is the i-th base quality.
+    `BQ:Z:qualities`: Offset to base alignment quality (BAQ), of the same length as the read
+    sequence. At the i-th read base, BAQ_i = Q_i − (BQ_i − 64) where Q_i is the i-th base quality.
     """
 
     BZ = "BZ"
-    """Phred quality of the unique molecular barcode bases in the OX tag."""
+    """
+    Phred quality of the unique molecular barcode bases in the OX tag.
+
+    `BZ:Z:qualities+`: Phred quality of the (uncorrected) unique molecular identifier sequence in
+    the `OX` tag. Same encoding as QUAL, i.e., Phred score + 33. The `OX` tags should match the `BZ`
+    tag in length. In the case of multiple unique molecular identifiers (e.g., one on each end of
+    the template) the recommended implementation concatenates all the quality strings with a space
+    (‘ ’) between the different strings.
+    """
 
     CB = "CB"
-    """Cell identifier."""
+    """
+    Cell identifier.
+
+    `CB:Z:str`: Cell identifier, consisting of the optionally-corrected cellular barcode sequence
+    and an optional suffix. The sequence part is similar to the `CR` tag, but may have had
+    sequencing errors etc corrected.  This may be followed by a suffix consisting of a hyphen ('-')
+    and one or more alphanumeric characters to form an identifier. In the case of the cellular
+    barcode (CR) being based on multiple barcode sequences the recommended implementation
+    concatenates all the (corrected or uncorrected) barcodes with a hyphen ('-') between the
+    different barcodes. Sequencing errors etc aside, all reads from a single cell are expected to
+    have the same CB tag.
+    """
 
     CC = "CC"
     """
@@ -69,7 +95,11 @@ class StandardTag(StrEnum):
     """Edit distance between the color sequence and the color reference (see also NM)."""
 
     CO = "CO"
-    """Free-text comments."""
+    """
+    Free-text comments.
+
+    `CO:Z:text`: Free-text comments.
+    """
 
     CP = "CP"
     """
@@ -82,7 +112,16 @@ class StandardTag(StrEnum):
     """Color read base qualities."""
 
     CR = "CR"
-    """Cellular barcode sequence bases (uncorrected)."""
+    """
+    Cellular barcode sequence bases (uncorrected).
+
+    `CR:Z:sequence+`: Cellular barcode. The uncorrected sequence bases of the cellular barcode as
+    reported by the sequencing machine, with the corresponding base quality scores (optionally)
+    stored in `CY`. Sequencing errors etc aside, all reads with the same `CR` tag likely derive from
+    the same cell. In the case of the cellular barcode being based on multiple barcode sequences the
+    recommended implementation concatenates all the barcodes with a hyphen (‘-’) between the
+    different barcodes.
+    """
 
     CS = "CS"
     """Color read sequence."""
@@ -91,7 +130,14 @@ class StandardTag(StrEnum):
     """Complete read annotation tag, used for consensus annotation dummy features."""
 
     CY = "CY"
-    """Phred quality of the cellular barcode sequence in the CR tag."""
+    """
+    Phred quality of the cellular barcode sequence in the CR tag.
+
+    `CY:Z:qualities+`: Phred quality of the cellular barcode sequence in the `CR` tag. Same encoding
+    as QUAL, i.e., Phred score + 33. The lengths of the `CY` and `CR` tags must match. In the case
+    of the cellular barcode being based on multiple barcode sequences the recommended implementation
+    concatenates all the quality strings with with spaces (‘ ’) between the different strings.
+    """
 
     E2 = "E2"
     """
@@ -149,7 +195,13 @@ class StandardTag(StrEnum):
     """
 
     LB = "LB"
-    """Library."""
+    """
+    Library.
+
+    `LB:Z:library`: The library from which the read has been sequenced. If
+    `@RG` headers are present, then _library_ must match the `RG-LB` field of
+    one of the headers.
+    """
 
     MC = "MC"
     """
@@ -201,7 +253,14 @@ class StandardTag(StrEnum):
     """Reserved for backwards compatibility reasons."""
 
     MI = "MI"
-    """Molecular identifier; a string that uniquely identifies the molecule from which the record was derived."""
+    """
+    Molecular identifier; a string that uniquely identifies the molecule from which the record was
+    derived.
+
+    `MI:Z:str`: Molecular Identifier. A unique ID within the SAM file for the source molecule from
+    which this read is derived. All reads with the same `MI` tag represent the group of reads
+    derived from the same source molecule.
+    """
 
     ML = "ML"
     """Base modification probabilities."""
@@ -232,11 +291,11 @@ class StandardTag(StrEnum):
     bases) between the sequence and reference, counting only (case-insensitive)
     A, C, G and T bases in sequence and reference as potential matches, with
     everything else being a mismatch. Note this means that ambiguity codes in
-    both sequence and reference that match each other, such as ‘N’ in both, or
-    compatible codes such as ‘A’ and ‘R’, are still counted as mismatches. The
-    special sequence base ‘=’ will always be considered to be a match, even if
+    both sequence and reference that match each other, such as 'N' in both, or
+    compatible codes such as 'A' and 'R', are still counted as mismatches. The
+    special sequence base '=' will always be considered to be a match, even if
     the reference is ambiguous at that point. Alignment reference skips,
-    padding, soft and hard clipping (‘N’, ‘P’, ‘S’ and ‘H’ CIGAR operations) do
+    padding, soft and hard clipping ('N', 'P', 'S' and 'H' CIGAR operations) do
     not count as mismatches, but insertions and deletions count as one mismatch
     per base.
 
@@ -257,10 +316,22 @@ class StandardTag(StrEnum):
     """Original base quality."""
 
     OX = "OX"
-    """Original unique molecular barcode bases."""
+    """
+    Original unique molecular barcode bases.
+
+    `OX:Z:sequence+`: Raw (uncorrected) unique molecular identifier bases, with any quality scores
+    (optionally) stored in the `BZ` tag. In the case of multiple unique molecular identifiers (e.g.,
+    one on each end of the template) the recommended implementation concatenates all the barcodes
+    with a hyphen (‘-’) between the different barcodes.
+    """
 
     PG = "PG"
-    """Program."""
+    """
+    Program.
+
+    `PG:Z:program_id`: Program. Value matches the header `PG-ID` tag if `@PG`
+    is present.
+    """
 
     PQ = "PQ"
     """
@@ -274,7 +345,13 @@ class StandardTag(StrEnum):
     """Read annotations for parts of the padded read sequence."""
 
     PU = "PU"
-    """Platform unit."""
+    """
+    Platform unit.
+
+    `PU:Z:platformunit`: The platform unit in which the read was sequenced. If
+    `@RG` headers are present, then _platformunit_ must match the `RG-PU` field
+    of one of the headers.
+    """
 
     Q2 = "Q2"
     """
@@ -285,10 +362,27 @@ class StandardTag(StrEnum):
     """
 
     QT = "QT"
-    """Phred quality of the sample barcode sequence in the `BC` tag."""
+    """
+    Phred quality of the sample barcode sequence in the `BC` tag.
+
+    `QT:Z:qualities` Phred quality of the sample barcode sequence in the `BC`
+    tag. Same encoding as QUAL, i.e., Phred score + 33. In the case of multiple
+    unique molecular identifiers (e.g., one on each end of the template) the
+    recommended implementation concatenates all the quality strings with spaces
+    (' ') between the different strings from the same template.
+    """
 
     QX = "QX"
-    """Quality score of the unique molecular identifier in the `RX` tag."""
+    """
+    Quality score of the unique molecular identifier in the `RX` tag.
+
+    `QX:Z:qualities+`: Phred quality of the unique molecular identifier sequence in the `RX` tag.
+    Same encoding as QUAL, i.e., Phred score + 33. The qualities here may have been corrected (Raw
+    bases and qualities can be stored in `OX` and `BZ` respectively.) The lengths of the `QX` and
+    the `RX` tags must match. In the case of multiple unique molecular identifiers (e.g., one on
+    each end of the template) the recommended implementation concatenates all the quality strings
+    with a space (‘ ’) between the different strings.
+    """
 
     R2 = "R2"
     """
@@ -299,13 +393,29 @@ class StandardTag(StrEnum):
     """
 
     RG = "RG"
-    """Read group."""
+    """
+    Read group.
+
+    `RG:Z:readgroup`: The read group to which the read belongs. If `@RG`
+    headers are present, then _readgroup_ must match the `RG-ID` field of one
+    of the headers.
+    """
 
     RT = "RT"
     """Reserved for backwards compatibility reasons."""
 
     RX = "RX"
-    """Sequence bases of the (possibly corrected) unique molecular identifier."""
+    """
+    Sequence bases of the (possibly corrected) unique molecular identifier.
+
+    `RX:Z:sequence+`: Sequence bases from the unique molecular identifier. These could be either
+    corrected or uncorrected. Unlike `MI`, the value may be non-unique in the file. Should be
+    comprised of a sequence of bases. In the case of multiple unique molecular identifiers (e.g.,
+    one on each end of the template) the recommended implementation concatenates all the barcodes
+    with a hyphen (‘-’) between the different barcodes.  If the bases represent corrected bases, the
+    original sequence can be stored in `OX` (similar to `OQ` storing the original qualities of
+    bases.)
+    """
 
     S2 = "S2"
     """Reserved for backwards compatibility reasons."""
@@ -318,7 +428,7 @@ class StandardTag(StrEnum):
     chimeric alignment, for- matted as a semicolon-delimited list. Each element
     in the list represents a part of the chimeric align- ment.  Conventionally,
     at a supplementary line, the first element points to the primary line.
-    _Strand_ is either ‘+’ or ‘-’, indicating forward/reverse strand,
+    _Strand_ is either '+' or '-', indicating forward/reverse strand,
     corresponding to FLAG bit 0x10. _Pos_ is a 1-based coordinate.
     """
 
@@ -345,7 +455,7 @@ class StandardTag(StrEnum):
     """
     Transcript strand.
 
-    `TS:A:strand`: Strand (‘+’ or ‘-’) of the transcript to which the read has
+    `TS:A:strand`: Strand ('+' or '-') of the transcript to which the read has
     been mapped.
     """
 
